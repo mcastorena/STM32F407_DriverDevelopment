@@ -109,6 +109,22 @@ typedef struct
 }GPIO_RegDef_t;
 
 /**
+ * Peripheral register definition structure for SPI
+ */
+typedef struct
+{
+	volatile uint32_t CR1;			// SPI control register 1
+	volatile uint32_t CR2;			// SPI control register 2
+	volatile uint32_t SR;			// SPI status register
+	volatile uint16_t DR;			// SPI data register
+	volatile uint16_t CRCPR;		// SPI CRC polynomial register
+	volatile uint16_t RXCRCR;		// SPI RX CRC register
+	volatile uint16_t TXCRCR;		// SPI TX CRC register
+	volatile uint32_t I2SCFGR;		// SPI_I2S configuration register
+	volatile uint32_t I2SPR;		// SPI_I2S prescaler register
+}SPI_RegDef_t;
+
+/**
  * Peripheral register definition structure for RCC
  */
 typedef struct
@@ -187,6 +203,10 @@ typedef struct
 #define GPIOG				((GPIO_RegDef_t*)GPIOG_BASEADDR)
 #define GPIOH				((GPIO_RegDef_t*)GPIOH_BASEADDR)
 #define GPIOI				((GPIO_RegDef_t*)GPIOI_BASEADDR)
+
+#define SPI1				((SPI_RegDef_t*)SPI1_BASEADDR)
+#define SPI2				((SPI_RegDef_t*)SPI2_BASEADDR)
+#define SPI3				((SPI_RegDef_t*)SPI3_BASEADDR)
 
 #define RCC					((RCC_RegDef_t*)RCC_BASEADDR)
 
