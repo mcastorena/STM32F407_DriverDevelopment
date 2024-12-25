@@ -10,10 +10,6 @@
 
 
 /**
- * Peripheral Clock setup
- */
-
-/**
  * Enable/Disable peripheral clock for the given GPIO port
  */
 void GPIO_PeriClockControl(GPIO_RegDef_t *pGPIOx, uint8_t EnorDi)
@@ -108,11 +104,14 @@ void GPIO_PeriClockControl(GPIO_RegDef_t *pGPIOx, uint8_t EnorDi)
  // GPIO_PeriClockControl
 
 /**
- * Init and De-init
+ * Initialize the given GPIO port
  */
 void GPIO_Init(GPIO_Handle_t *pGPIOHandle)
 {
 	uint32_t tmp = 0;	// tmp register
+
+	// Enable the GPIO Peripheral Clock
+	GPIO_PeriClockControl(pGPIOHandle->pGPIOx, ENABLE);
 
 	// Configure the mode of the GPIO pin
 	if(pGPIOHandle->GPIO_PinConfig.GPIO_PinMode <= GPIO_MODE_ANALOG)	// Non-interrupt mode
@@ -204,8 +203,11 @@ void GPIO_Init(GPIO_Handle_t *pGPIOHandle)
 		tmp = ( pGPIOHandle->GPIO_PinConfig.GPIO_PinAltFunMode << ( 4 * bitShiftOffset ) );
 		pGPIOHandle->pGPIOx->ARF[regPosition] |= tmp;
 	}
-}
+} // GPIO_Init
 
+/**
+ * De-initialize the given GPIO port
+ */
 void GPIO_DeInit(GPIO_RegDef_t *pGPIOx)
 {
 	if (pGPIOx == GPIOA)
@@ -250,8 +252,9 @@ void GPIO_DeInit(GPIO_RegDef_t *pGPIOx)
 	}
 } // GPIO_DeInit
 
+
 /**
- * Data read and write
+ * Read from the given GPIO pin
  */
 uint8_t GPIO_ReadFromInputPin(GPIO_RegDef_t *pGPIOx, uint8_t pinNumber)
 {
@@ -263,6 +266,9 @@ uint8_t GPIO_ReadFromInputPin(GPIO_RegDef_t *pGPIOx, uint8_t pinNumber)
 	return value;
 } // GPIO_ReadFromInputPin
 
+/**
+ * Read from the given GPIO port
+ */
 uint16_t GPIO_ReadFromInputPort(GPIO_RegDef_t *pGPIOx)
 {
 	uint16_t value = 0;
@@ -270,6 +276,9 @@ uint16_t GPIO_ReadFromInputPort(GPIO_RegDef_t *pGPIOx)
 	return value;
 } // GPIO_ReadFromInputPort
 
+/**
+ * Write to the given GPIO pin
+ */
 void GPIO_WriteToOutputPin(GPIO_RegDef_t *pGPIOx, uint8_t pinNumber, uint8_t value)
 {
 	if(value == GPIO_PIN_SET)
@@ -282,11 +291,17 @@ void GPIO_WriteToOutputPin(GPIO_RegDef_t *pGPIOx, uint8_t pinNumber, uint8_t val
 	}
 } // GPIO_WriteToOutputPin
 
+/**
+ * Write to the given GPIO port
+ */
 void GPIO_WriteToOutputPort(GPIO_RegDef_t *pGPIOx, uint16_t value)
 {
 	pGPIOx->ODR = value;
 } // GPIO_WriteToOutputPort
 
+/**
+ * Toggle the value of the given GPIO pin
+ */
 void GPIO_ToggleOutputPin(GPIO_RegDef_t *pGPIOx, uint8_t pinNumber)
 {
 	pGPIOx->ODR ^= ( 1 << pinNumber ) ;
@@ -333,8 +348,11 @@ void GPIO_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDi)
 			*NVIC_ICER2 |= ( 1 << ( IRQNumber % 64 ) );
 		}
 	}
-}
+} // GPIO_IRQConfig
 
+/**
+ * Configure the IRQ number's priority
+ */
 void GPIO_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority)
 {
 	// Get IPR register index
@@ -344,8 +362,11 @@ void GPIO_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority)
 	uint8_t bitShiftOffset = ( 8 * iprxSection ) + (8 - NO_PR_BITS_IMPLEMENTED);
 	uint32_t *pNvicIprAddr = NVIC_PR_BASEEADDR + ( iprx );	// Since it is uint32_t we move 4 bytes at a time when we increment the address
 	*(pNvicIprAddr) |= ( IRQPriority << bitShiftOffset);
-}
+} // GPIO_IRQPriorityConfig
 
+/**
+ * Handle the pending IRQ
+ */
 void GPIO_IRQHandling(uint8_t pinNumber)
 {
 	// Clear the EXTI Pending Register corresponding to the pin number
@@ -354,4 +375,4 @@ void GPIO_IRQHandling(uint8_t pinNumber)
 		// Clear the pending register bit by writing 1
 		EXTI->PR |= ( 1 << pinNumber );
 	}
-}
+} // GPIO_IRQHandling
