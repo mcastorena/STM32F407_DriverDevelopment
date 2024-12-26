@@ -5,6 +5,7 @@
  *      Author: engineering
  */
 #include "stm32f407xx_spi_driver.h"
+#include <string.h>
 
 /**
  * Enable/Disable peripheral clock for the given SPI peripheral
@@ -57,6 +58,9 @@ void SPI_PeriClockControl(SPI_RegDef_t *pSPIx, uint8_t EnorDi)
  */
 void SPI_Init(SPI_Handle_t *pSPIHandle)
 {
+	// Enable the SPI peripheral clock
+	SPI_PeriClockControl(pSPIHandle->pSPIx, ENABLE);
+
 	/**
 	 * Configure SPI_CR1
 	 */
@@ -69,7 +73,7 @@ void SPI_Init(SPI_Handle_t *pSPIHandle)
 	if(pSPIHandle->SPIConfig.SPI_BusConfig == SPI_BUS_CONFIG_FD)
 	{
 		// BIDIMODE should be cleared
-		tempReg &= ~(1 << SPI_CR1_BIDI_MODE);
+		tmpReg &= ~(1 << SPI_CR1_BIDI_MODE);
 	}
 	else if(pSPIHandle->SPIConfig.SPI_BusConfig == SPI_BUS_CONFIG_HD)
 	{
@@ -97,11 +101,17 @@ void SPI_Init(SPI_Handle_t *pSPIHandle)
 	// Configure slave select mode
 	tmpReg |= (pSPIHandle->SPIConfig.SPI_SSM << SPI_CR1_SSM);
 
-	// Enable the peripheral
-	tmpReg |= (ENABLE << SPI_CR1_SPE);
+	// Configure internal slave select
+	if(pSPIHandle->SPIConfig.SPI_SSM == SPI_SSM_EN)
+	{
+		/**
+		 * SSI bit must be set HIGH if software slave management is enabled
+		 */
+		tmpReg |= (1 << SPI_CR1_SSI);
+	}
 
 	// Write to the SPI peripheral register
-	*(pSPIHandle->pSPIx->CR1) = tempReg;
+	pSPIHandle->pSPIx->CR1 = tmpReg;
 
 } // SPI_Init
 
@@ -117,6 +127,40 @@ void SPI_DeInit(SPI_RegDef_t *pSPIx)
 	// Disable the SPE bit in the CR1 register
 	pSPIx->CR1 &= ~(1 << SPI_CR1_SPE);
 } // SPI_DeInit
+
+/**
+ * Initializes the GPIO pins for SPI usage
+ */
+void SPI_GPIOInit(GPIO_RegDef_t *pGPIOx, uint8_t AFMode, uint8_t MOSIPin, uint8_t MISOPin, uint8_t SCLKPin, uint8_t NSSPin)
+{
+	// Create and initialize GPIO Handle
+	GPIO_Handle_t SPIPins;
+	memset(&SPIPins, 0, sizeof(SPIPins));
+	SPIPins.pGPIOx = pGPIOx;
+
+	// Set general pin configuration
+	SPIPins.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ALTFN;
+	SPIPins.GPIO_PinConfig.GPIO_PinAltFunMode = AFMode;
+	SPIPins.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;	// Push-pull output type
+	SPIPins.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
+	SPIPins.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_FAST;
+
+	// Init SCLK
+	SPIPins.GPIO_PinConfig.GPIO_PinNumber = SCLKPin;
+	GPIO_Init(&SPIPins);
+
+	// Init MOSI
+	SPIPins.GPIO_PinConfig.GPIO_PinNumber = MISOPin;
+	GPIO_Init(&SPIPins);
+
+	// Init MISO
+	SPIPins.GPIO_PinConfig.GPIO_PinNumber = MOSIPin;
+	GPIO_Init(&SPIPins);
+
+	// Init NSS
+	SPIPins.GPIO_PinConfig.GPIO_PinNumber = NSSPin;
+	GPIO_Init(&SPIPins);
+} // SPI_GPIOInit
 
 /**
  * Retrieves flag status from the SPI_SR register
@@ -141,7 +185,7 @@ void SPI_SendData(SPI_RegDef_t *pSPIx, uint8_t *pTxBuffer, uint32_t len)
 	while(len > 0)
 	{
 		// Wait until the TX Buffer is empty by checking TXE in the status register
-		while(SPI_GetFlagStatus(pSPIx, SPI_SR_TXE) == FLAG_RESET);
+		while(SPI_GetFlagStatus(pSPIx, SPI_TXE_FLAG) == FLAG_RESET);
 
 		// Check the DFF bit in SPI_CR1
 		if(pSPIx->CR1 & (1 << SPI_CR1_DFF))
@@ -182,3 +226,34 @@ void SPI_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority);
  */
 void SPI_IRQHandling(SPI_RegDef_t *pSPIx);
 
+/**
+ * Enable or disable the SPI peripheral
+ */
+void SPI_PeripheralControl(SPI_RegDef_t *pSPIx, uint8_t EnorDi)
+{
+	if(EnorDi == ENABLE)
+	{
+		pSPIx->CR1 |= (1 << SPI_CR1_SPE);
+	}
+	else
+	{
+		pSPIx->CR1 &= ~(1 << SPI_CR1_SPE);
+	}
+
+} // SPI_PeripheralControl
+
+/**
+ * Enable or disable the SPI peripheral internal slave select (SSI bit in CR1)
+ */
+void SPI_SSIConfig(SPI_RegDef_t *pSPIx, uint8_t EnorDi)
+{
+	if(EnorDi == ENABLE)
+	{
+		pSPIx->CR1 |= (1 << SPI_CR1_SSI);
+	}
+	else
+	{
+		pSPIx->CR1 &= ~(1 << SPI_CR1_SSI);
+	}
+
+} // SPI_SSIConfig

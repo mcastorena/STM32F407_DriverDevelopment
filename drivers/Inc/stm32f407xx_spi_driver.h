@@ -9,6 +9,7 @@
 #define INC_STM32F407XX_SPI_DRIVER_H_
 
 #include "stm32f407xx.h"
+#include "stm32f407xx_gpio_driver.h"
 
 /**
  * Configuration structure for a SPI peripheral
@@ -121,6 +122,18 @@ void SPI_Init(SPI_Handle_t *pSPIHandle);
 void SPI_DeInit(SPI_RegDef_t *pSPIx);
 
 /**
+ * @brief   Initializes the GPIO pins for SPI usage
+ * @param   pGPIOx		GPIO Peripheral base address
+ * @param   AFMode		Alternate Function mode
+ * @param	MOSIPin		Pin number for SPI MOSI
+ * @param	MISOPin		Pin number for SPI MISO
+ * @param	SCLKPin		Pin number for SPI SCLK
+ * @param	NSSPin		Pin number for SPI NSS
+ * @return  void
+ */
+void SPI_GPIOInit(GPIO_RegDef_t *pGPIOx, uint8_t AFMode, uint8_t MOSIPin, uint8_t MISOPin, uint8_t SCLKPin, uint8_t NSSPin);
+
+/**
  * @brief   Retrieves flag status from the SPI_SR register
  * @param   pSPIx	SPI Peripheral base address
  * @return  uint8_t	Flag set or reset
@@ -172,5 +185,20 @@ void SPI_IRQHandling(SPI_RegDef_t *pSPIx);
  * Other Peripheral Control APIs
  */
 
+/**
+ * @brief 	Enable or disable the SPI peripheral
+ * @note	You must configure and initialize the SPI peripheral before enabling it
+ * @param	pSPIx		SPI peripheral base address
+ * @param	EnorDi		ENABLE or DISABLE macro
+ */
+void SPI_PeripheralControl(SPI_RegDef_t *pSPIx, uint8_t EnorDi);
+
+/**
+ * @brief 	Enable or disable the SPI peripheral internal slave select (SSI bit in CR1)
+ * @note	This must be set HIGH when SSM is HIGH
+ * @param	pSPIx		SPI peripheral base address
+ * @param	EnorDi		ENABLE or DISABLE macro
+ */
+void SPI_SSIConfig(SPI_RegDef_t *pSPIx, uint8_t EnorDi);
 
 #endif /* INC_STM32F407XX_SPI_DRIVER_H_ */
