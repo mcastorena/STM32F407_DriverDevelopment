@@ -52,10 +52,14 @@ int main(void)
 	char userDataBuffer[] = "Hello World!";
 	SPI_SendData(SPI2, (uint8_t*)userDataBuffer, strlen(userDataBuffer));
 
-	while(1)
-	{
-		SPI_SendData(SPI2, (uint8_t*)userDataBuffer, strlen(userDataBuffer));
-	}
+	// Confirm the SPI peripheral is not busy
+	while(SPI_GetFlagStatus(SPI2, SPI_BUSY_FLAG)); 		// SPI is busy when this returns 1
+
+	// Disable the SPI2 Peripheral
+	SPI_PeriClockControl(SPI2, DISABLE);
+
+	while(1);
+
 
 
 	return 0;

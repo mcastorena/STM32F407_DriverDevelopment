@@ -257,3 +257,19 @@ void SPI_SSIConfig(SPI_RegDef_t *pSPIx, uint8_t EnorDi)
 	}
 
 } // SPI_SSIConfig
+
+/**
+ * Enable or disable the SPI peripheral slave select output enable (SSOE bit in CR2)
+ */
+void SPI_SSOEConfig(SPI_RegDef_t *pSPIx, uint8_t EnorDi)
+{
+	if(EnorDi == ENABLE)
+	{
+		pSPIx->CR2 |= (1 << SPI_CR2_SSOE);
+	}
+	else
+	{
+		pSPIx->CR2 &= ~(1 << SPI_CR2_SSOE);
+	}
+
+} // SPI_SSOEConfig

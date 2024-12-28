@@ -116,10 +116,10 @@ typedef struct
 	volatile uint32_t CR1;			// SPI control register 1
 	volatile uint32_t CR2;			// SPI control register 2
 	volatile uint32_t SR;			// SPI status register
-	volatile uint16_t DR;			// SPI data register
-	volatile uint16_t CRCPR;		// SPI CRC polynomial register
-	volatile uint16_t RXCRCR;		// SPI RX CRC register
-	volatile uint16_t TXCRCR;		// SPI TX CRC register
+	volatile uint32_t DR;			// SPI data register
+	volatile uint32_t CRCPR;		// SPI CRC polynomial register
+	volatile uint32_t RXCRCR;		// SPI RX CRC register
+	volatile uint32_t TXCRCR;		// SPI TX CRC register
 	volatile uint32_t I2SCFGR;		// SPI_I2S configuration register
 	volatile uint32_t I2SPR;		// SPI_I2S prescaler register
 }SPI_RegDef_t;
