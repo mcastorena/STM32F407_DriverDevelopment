@@ -30,9 +30,29 @@ typedef struct
  */
 typedef struct
 {
-	SPI_RegDef_t *pSPIx;		// Holds the base address of the SPIx(x:0,1,2) peripheral
-	SPI_Config_t SPIConfig;		// Holds SPIx peripheral configuration settings
+	SPI_RegDef_t 	*pSPIx;			// Holds the base address of the SPIx(x:0,1,2) peripheral
+	SPI_Config_t 	SPIConfig;		// Holds SPIx peripheral configuration settings
+	uint8_t			*pTxBuffer;		// Stores the application TX Buffer address
+	uint8_t			*pRxBuffer;		// Stores the application RX Buffer address
+	uint32_t		txLen;			// Length of TX Buffer
+	uint32_t		rxLen;			// Length of RX Buffer
+	uint8_t			txState;
+	uint8_t			rxState;
 }SPI_Handle_t;
+
+/**
+ * SPI Application States
+ */
+#define SPI_READY				0
+#define SPI_BUSY_IN_TX			1
+#define SPI_BUSY_IN_RX			2
+
+/**
+ * SPI Application Events
+ */
+#define SPI_EVENT_TX_COMPLETE	1
+#define SPI_EVENT_RX_COMPLETE	2
+#define SPI_EVENT_OVR_COMPLETE	3
 
 /**
  * @SPI_DeviceMode
@@ -89,6 +109,11 @@ typedef struct
 #define SPI_TXE_FLAG					( 1 << SPI_SR_TXE )
 #define SPI_RXNE_FLAG					( 1 << SPI_SR_RXNE )
 #define SPI_BUSY_FLAG					( 1 << SPI_SR_BSY )
+#define SPI_OVR_FLAG					( 1 << SPI_SR_OVR )
+
+#define SPI_TXEIE_FLAG					( 1 << SPI_CR2_TXEIE )
+#define SPI_RXNEIE_FLAG					( 1 << SPI_CR2_RXNEIE )
+#define SPI_ERRIE_FLAG					( 1 << SPI_CR2_ERRIE )
 
 /*********************** APIs supported by this driver *********************************/
 
@@ -163,23 +188,49 @@ void SPI_SendData(SPI_RegDef_t *pSPIx, uint8_t *pTxBuffer, uint32_t len);
 void SPI_ReceiveData(SPI_RegDef_t *pSPIx, uint8_t *pRxBuffer, uint32_t len);
 
 /**
+ * @brief	Interrupt-based send data
+ * @note	This is a blocking call
+ * @param   pSPIHandle 	SPI Peripheral Handle
+ * @param	pTxBuffer	Pointer to the transmit buffer
+ * @param	len			Size of the data we want to transmit
+ * @return  uint8_t		SPI Peripheral TX state
+ */
+uint8_t SPI_SendDataIT(SPI_Handle_t *pSPIHandle, uint8_t *pTxBuffer, uint32_t len);
+
+/**
+ * @brief	Interrupt-based read data
+ * @param   pSPIHandle 	SPI Peripheral Handle
+ * @param	pRxBuffer	Pointer to the receive buffer
+ * @param	len			Size of the data we want to receive
+ * @return  uint8_t		SPI Peripheral RX state
+ */
+uint8_t SPI_ReceiveDataIT(SPI_Handle_t *pSPIHandle, uint8_t *pRxBuffer, uint32_t len);
+
+/**
  * IRQ configuration and ISR handling
  */
 /**
  * @brief	Enable or disable the given IRQ number
+ * @param   IRQNumber	IRQ number
+ * @param	EnorDi		GPIO pin number
+ * @return	void
  */
 void SPI_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDi);
 
 /**
  * @brief	Set the IRQ priority level for the given IRQ number
+ * @param   IRQNumber		IRQ number
+ * @param	IRQPriority		Priority level from 0 to 15
+ * @return	void
  */
 void SPI_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority);
 
 /**
  * @brief 	Handle an interrupt for the SPI peripheral
- * @param	pSPIx		SPI peripheral base address
+ * @param	pSPIHandle 	SPI Peripheral Handle
+ * @return	void
  */
-void SPI_IRQHandling(SPI_RegDef_t *pSPIx);
+void SPI_IRQHandling(SPI_Handle_t *pSPIHandle);
 
 /**
  * Other Peripheral Control APIs
@@ -190,6 +241,7 @@ void SPI_IRQHandling(SPI_RegDef_t *pSPIx);
  * @note	You must configure and initialize the SPI peripheral before enabling it
  * @param	pSPIx		SPI peripheral base address
  * @param	EnorDi		ENABLE or DISABLE macro
+ * @return	void
  */
 void SPI_PeripheralControl(SPI_RegDef_t *pSPIx, uint8_t EnorDi);
 
@@ -206,7 +258,42 @@ void SPI_SSIConfig(SPI_RegDef_t *pSPIx, uint8_t EnorDi);
  * @note	This must be set HIGH when SSM is LOW in order to select the slave
  * @param	pSPIx		SPI peripheral base address
  * @param	EnorDi		ENABLE or DISABLE macro
+ * @return	void
  */
 void SPI_SSOEConfig(SPI_RegDef_t *pSPIx, uint8_t EnorDi);
+
+/**
+ * @brief	Clear the OVR flag by reading from the DR and SR
+ * @param	pSPIx		SPI peripheral base address
+ * @return	void
+ */
+void SPI_ClearOVRFlag(SPI_RegDef_t *pSPIx);
+
+/**
+ * @brief	Close SPI peripheral transmission
+ * @param	pSPIHandle 	SPI Peripheral Handle
+ * @return	void
+ */
+void SPI_CloseTransmission(SPI_Handle_t *pSPIHandle);
+
+/**
+ * @brief	Close SPI peripheral reception
+ * @param	pSPIHandle 	SPI Peripheral Handle
+ * @return	void
+ */
+void SPI_CloseReception(SPI_Handle_t *pSPIHandle);
+
+/**
+ * Application call-back
+ */
+/**
+ * @brief	Application callback function
+ * @note	This is a weak implementation, it must be overridden by
+ * 			the application to suit its requirements
+ * @param	pSPIHandle 	SPI Peripheral Handle
+ * @param	appEv		Application event macro
+ * @return	void
+ */
+void SPI_ApplicationEventCallback(SPI_Handle_t *pSPIHandle, uint8_t appEv);
 
 #endif /* INC_STM32F407XX_SPI_DRIVER_H_ */

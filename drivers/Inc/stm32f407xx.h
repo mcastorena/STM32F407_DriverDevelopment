@@ -8,6 +8,7 @@
 #ifndef INC_STM32F407XX_H_
 #define INC_STM32F407XX_H_
 
+#include <stddef.h>
 #include <stdint.h>
 
 /**************************************************** Processor specific details **********************************************/
@@ -30,7 +31,7 @@
 /**
  * ARM Cortex M4 Processor NVIC IPRx register addresses
  */
-#define NVIC_PR_BASEEADDR	((volatile uint32_t*)0xE000E400)
+#define NVIC_PR_BASEEADDR	( (volatile uint32_t*)0xE000E400 )
 
 #define NO_PR_BITS_IMPLEMENTED 4
 
