@@ -334,6 +334,13 @@ typedef struct
 #define IRQ_NO_EXT15_10			40
 
 /**
+ * Macros to define the IRQ numbers for SPI interrupt lines
+ */
+#define IRQ_NO_SPI1				35
+#define IRQ_NO_SPI2				36
+#define IRQ_NO_SPI				51
+
+/**
  * Macros to define IRQ priority levels
  */
 #define NVIC_IRQ_PRI0			0

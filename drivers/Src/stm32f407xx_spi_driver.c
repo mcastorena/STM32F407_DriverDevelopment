@@ -237,17 +237,67 @@ void SPI_ReceiveData(SPI_RegDef_t *pSPIx, uint8_t *pRxBuffer, uint32_t len)
 /**
  * Enable or disable the given IRQ number
  */
-void SPI_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDi);
+void SPI_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDi)
+{
+	if(EnorDi == ENABLE)
+		{
+			if(IRQNumber <= 31)
+			{
+				// Write to ISER0
+				*NVIC_ISER0 |= ( 1 << IRQNumber );
+			}
+			else if(IRQNumber > 31 && IRQNumber < 64) // 32 to 63
+			{
+				// Write to ISER1
+				*NVIC_ISER1 |= ( 1 << ( IRQNumber % 32 ) );
+			}
+			else if(IRQNumber >= 64 && IRQNumber < 96) // 64 to 95
+			{
+				// Write to ISER2
+				*NVIC_ISER2 |= ( 1 << ( IRQNumber % 64 ) );
+			}
+		}
+		else
+		{
+			if(IRQNumber <= 31)
+			{
+				// Write to ICER0
+				*NVIC_ICER0 |= ( 1 << IRQNumber );
+			}
+			else if(IRQNumber > 31 && IRQNumber < 64) // 32 to 63
+			{
+				// Write to ICER1
+				*NVIC_ICER1 |= ( 1 << ( IRQNumber % 32 ) );
+			}
+			else if(IRQNumber >= 64 && IRQNumber < 96) // 64 to 95
+			{
+				// Write to ICER2
+				*NVIC_ICER2 |= ( 1 << ( IRQNumber % 64 ) );
+			}
+		}
+} // SPI_IRQInterruptConfig
 
 /**
  * Set the IRQ priority level for the given IRQ number
  */
-void SPI_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority);
+void SPI_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority)
+{
+	// Get IPR register index
+	uint8_t iprx = IRQNumber / 4;
+	uint8_t iprxSection = IRQNumber % 4;
+
+	uint8_t bitShiftOffset = ( 8 * iprxSection ) + (8 - NO_PR_BITS_IMPLEMENTED);
+	uint32_t *pNvicIprAddr = NVIC_PR_BASEEADDR + ( iprx );	// Since it is uint32_t we move 4 bytes at a time when we increment the address
+	*(pNvicIprAddr) |= ( IRQPriority << bitShiftOffset);
+} // SPI_IRQPriorityConfig
 
 /**
  * Handle an interrupt for the SPI peripheral
  */
-void SPI_IRQHandling(SPI_RegDef_t *pSPIx);
+void SPI_IRQHandling(SPI_RegDef_t *pSPIx)
+{
+
+} // SPI_IRQHandling
 
 /**
  * Enable or disable the SPI peripheral
