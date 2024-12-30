@@ -154,13 +154,13 @@ uint8_t SPI_GetFlagStatus(SPI_RegDef_t *pSPIx, uint8_t flagName);
 void SPI_SendData(SPI_RegDef_t *pSPIx, uint8_t *pTxBuffer, uint32_t len);
 
 /**
- * @brief
+ * @brief	Read data
  * @param   pSPIx    	SPI Peripheral base address
- * @param	pRxBuffer	Pointer to the receieve buffer
+ * @param	pRxBuffer	Pointer to the receive buffer
  * @param	len			Size of the data we want to receive
  * @return  void
  */
-void SPI_ReceiveData(SPI_RegDef_t *pSPIx, uint8_t *pTxBuffer, uint32_t len);
+void SPI_ReceiveData(SPI_RegDef_t *pSPIx, uint8_t *pRxBuffer, uint32_t len);
 
 /**
  * IRQ configuration and ISR handling

@@ -206,9 +206,32 @@ void SPI_SendData(SPI_RegDef_t *pSPIx, uint8_t *pTxBuffer, uint32_t len)
 } // SPI_SendData
 
 /**
- * @brief
+ * @brief Read Data
  */
-void SPI_ReceiveData(SPI_RegDef_t *pSPIx, uint8_t *pTxBuffer, uint32_t len);
+void SPI_ReceiveData(SPI_RegDef_t *pSPIx, uint8_t *pRxBuffer, uint32_t len)
+{
+	while(len > 0)
+		{
+			// Wait until the RX Buffer is not empty by checking RXNE in the status register
+			while(SPI_GetFlagStatus(pSPIx, SPI_RXNE_FLAG) == FLAG_RESET);
+
+			// Check the DFF bit in SPI_CR1
+			if(pSPIx->CR1 & (1 << SPI_CR1_DFF))
+			{
+				// 16 bit DFF
+				*((uint16_t*)pRxBuffer) = pSPIx->DR;	// Read 16bits of data from the DR
+				len -= 2;								// Decrement len by 2 (bytes)
+				(uint16_t*)pRxBuffer++;					// Increment the pointer by 2 bytes
+			}
+			else
+			{
+				// 8 BIT DFF
+				*(pRxBuffer) = pSPIx->DR;				// Read 8bits of data from the DR
+				len--;									// Decrement len by 1(byte)
+				pRxBuffer++;							// Increment the pointer by 1 byte
+			}
+		}
+} // SPI_ReceiveData
 
 
 /**
