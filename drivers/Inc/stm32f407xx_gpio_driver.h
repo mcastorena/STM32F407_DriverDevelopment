@@ -125,23 +125,73 @@ void GPIO_DeInit(GPIO_RegDef_t *pGPIOx);
 /**
  * Data read and write
  */
+
+/**
+ * @brief   Read from the given GPIO pin
+ * @param   pGPIOx		GPIO Peripheral base address
+ * @param	pinNumber	GPIO pin number
+ * @return  uint8_t		Input data
+ */
 uint8_t GPIO_ReadFromInputPin(GPIO_RegDef_t *pGPIOx, uint8_t pinNumber);
 
+/**
+ * @brief   Read from the given GPIO port
+ * @param   pGPIOx		GPIO Peripheral base address
+ * @param	pinNumber	GPIO pin number
+ * @return  uint16_t		Input data
+ */
 uint16_t GPIO_ReadFromInputPort(GPIO_RegDef_t *pGPIOx);
 
+/**
+ * @brief   Write to the given GPIO pin
+ * @param   pGPIOx		GPIO Peripheral base address
+ * @param	pinNumber	GPIO pin number
+ * @param  	uint8_t		Output data
+ * @return	void
+ */
 void GPIO_WriteToOutputPin(GPIO_RegDef_t *pGPIOx, uint8_t pinNumber, uint8_t value);
 
+/**
+ * @brief   Write to the given GPIO port
+ * @param   pGPIOx		GPIO Peripheral base address
+ * @param  	uint16_t		Output data
+ * @return	void
+ */
 void GPIO_WriteToOutputPort(GPIO_RegDef_t *pGPIOx, uint16_t value);
 
+/**
+ * @brief   Toggle the value of the given GPIO pin
+ * @param   pGPIOx		GPIO Peripheral base address
+ * @param	pinNumber	GPIO pin number
+ * @return	void
+ */
 void GPIO_ToggleOutputPin(GPIO_RegDef_t *pGPIOx, uint8_t pinNumber);
 
 /**
  * IRQ configuration and ISR handling
  */
+
+/**
+ * @brief   Configure the given IRQ number
+ * @param   IRQNumber	IRQ number
+ * @param	EnorDi		GPIO pin number
+ * @return	void
+ */
 void GPIO_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDi);
 
+/**
+ * @brief   Configure the IRQ number's priority
+ * @param   IRQNumber		IRQ number
+ * @param	IRQPriority		Priority level from 0 to 15
+ * @return	void
+ */
 void GPIO_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority);
 
+/**
+ * @brief   Handle the pending IRQ
+ * @param	pinNumber	GPIO pin number
+ * @return	void
+ */
 void GPIO_IRQHandling(uint8_t pinNumber);
 
 #endif /* INC_STM32F407XX_GPIO_DRIVER_H_ */

@@ -8,6 +8,7 @@
 #ifndef INC_STM32F407XX_H_
 #define INC_STM32F407XX_H_
 
+#include <stddef.h>
 #include <stdint.h>
 
 /**************************************************** Processor specific details **********************************************/
@@ -30,7 +31,7 @@
 /**
  * ARM Cortex M4 Processor NVIC IPRx register addresses
  */
-#define NVIC_PR_BASEEADDR	((volatile uint32_t*)0xE000E400)
+#define NVIC_PR_BASEEADDR	( (volatile uint32_t*)0xE000E400 )
 
 #define NO_PR_BITS_IMPLEMENTED 4
 
@@ -107,6 +108,22 @@ typedef struct
 	volatile uint32_t LCKR;			// GPIO port configuration lock register
 	volatile uint32_t ARF[2];		// GPIO alternate function register Low:[0] and High:[1]
 }GPIO_RegDef_t;
+
+/**
+ * Peripheral register definition structure for SPI
+ */
+typedef struct
+{
+	volatile uint32_t CR1;			// SPI control register 1
+	volatile uint32_t CR2;			// SPI control register 2
+	volatile uint32_t SR;			// SPI status register
+	volatile uint32_t DR;			// SPI data register
+	volatile uint32_t CRCPR;		// SPI CRC polynomial register
+	volatile uint32_t RXCRCR;		// SPI RX CRC register
+	volatile uint32_t TXCRCR;		// SPI TX CRC register
+	volatile uint32_t I2SCFGR;		// SPI_I2S configuration register
+	volatile uint32_t I2SPR;		// SPI_I2S prescaler register
+}SPI_RegDef_t;
 
 /**
  * Peripheral register definition structure for RCC
@@ -187,6 +204,10 @@ typedef struct
 #define GPIOG				((GPIO_RegDef_t*)GPIOG_BASEADDR)
 #define GPIOH				((GPIO_RegDef_t*)GPIOH_BASEADDR)
 #define GPIOI				((GPIO_RegDef_t*)GPIOI_BASEADDR)
+
+#define SPI1				((SPI_RegDef_t*)SPI1_BASEADDR)
+#define SPI2				((SPI_RegDef_t*)SPI2_BASEADDR)
+#define SPI3				((SPI_RegDef_t*)SPI3_BASEADDR)
 
 #define RCC					((RCC_RegDef_t*)RCC_BASEADDR)
 
@@ -314,6 +335,13 @@ typedef struct
 #define IRQ_NO_EXT15_10			40
 
 /**
+ * Macros to define the IRQ numbers for SPI interrupt lines
+ */
+#define IRQ_NO_SPI1				35
+#define IRQ_NO_SPI2				36
+#define IRQ_NO_SPI				51
+
+/**
  * Macros to define IRQ priority levels
  */
 #define NVIC_IRQ_PRI0			0
@@ -342,5 +370,51 @@ typedef struct
 #define RESET			DISABLE
 #define GPIO_PIN_SET	SET
 #define GPIO_PIN_RESET	RESET
+#define FLAG_SET		SET
+#define FLAG_RESET		RESET
+
+/********************************** Bit position macro definitions for SPI peripheral ********************/
+
+/**
+ * SPI_CR1 register bit position macros
+ */
+#define SPI_CR1_CPHA			0
+#define SPI_CR1_CPOL			1
+#define SPI_CR1_MSTR			2
+#define SPI_CR1_BR				3
+#define SPI_CR1_SPE				6
+#define SPI_CR1_LSF_FIRST		7
+#define SPI_CR1_SSI				8
+#define SPI_CR1_SSM				9
+#define SPI_CR1_RX_ONLY			10
+#define SPI_CR1_DFF				11
+#define SPI_CR1_CRC_NEXT		12
+#define SPI_CR1_CRC_EN			13
+#define SPI_CR1_BIDI_OE			14
+#define SPI_CR1_BIDI_MODE		15
+
+/**
+ * SPI_CR2 register bit position macros
+ */
+#define SPI_CR2_RXDMAEN			0
+#define SPI_CR2_TXDMAEN			1
+#define SPI_CR2_SSOE			2
+#define SPI_CR2_FRF				4
+#define SPI_CR2_ERRIE			5
+#define SPI_CR2_RXNEIE			6
+#define SPI_CR2_TXEIE			7
+
+/**
+ * SPI_SR register bit position macros
+ */
+#define SPI_SR_RXNE				0
+#define SPI_SR_TXE				1
+#define SPI_SR_CHSIDE			2
+#define SPI_SR_UDR				3
+#define SPI_SR_CRCERR			4
+#define SPI_SR_MODF				5
+#define SPI_SR_OVR				6
+#define SPI_SR_BSY				7
+#define SPI_SR_FRE				8
 
 #endif /* INC_STM32F407XX_H_ */
