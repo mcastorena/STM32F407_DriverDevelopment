@@ -120,6 +120,7 @@ void GPIO_Init(GPIO_Handle_t *pGPIOHandle)
 
 		// Left shift to the pin's bit position in the GPIO pin mode register
 		tmp = ( pGPIOHandle->GPIO_PinConfig.GPIO_PinMode << (2 * pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber) );
+		pGPIOHandle->pGPIOx->MODER &= ~( 0x3 << (2 * pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber)); //clearing
 		pGPIOHandle->pGPIOx->MODER |= tmp;
 	}
 	else	// Interrupt mode

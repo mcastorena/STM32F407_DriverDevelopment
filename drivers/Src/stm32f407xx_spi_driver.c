@@ -329,7 +329,7 @@ static void SPI_RXNEInterruptHandle(SPI_Handle_t *pSPIHandle)
 	else
 	{
 		// 8 BIT DFF
-		*(pSPIHandle->pRxBuffer) = pSPIHandle->pSPIx->DR;				// Read 8bits of data from the DR
+		*(pSPIHandle->pRxBuffer) = (uint8_t) pSPIHandle->pSPIx->DR;				// Read 8bits of data from the DR
 		pSPIHandle->rxLen--;											// Decrement len by 1(byte)
 		pSPIHandle->pRxBuffer++;										// Increment the pointer by 1 byte
 	}
@@ -420,8 +420,8 @@ void SPI_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority)
 void SPI_IRQHandling(SPI_Handle_t *pSPIHandle)
 {
 	// Get the status of the TXE and TXEIE flags
-	uint8_t statusFlag = SPI_GetFlagStatus(pSPIHandle->pSPIx, SPI_TXE_FLAG);
-	uint8_t interruptEnabledFlag = SPI_GetFlagStatus(pSPIHandle->pSPIx, SPI_TXEIE_FLAG);
+	uint8_t statusFlag = pSPIHandle->pSPIx->SR & ( 1 << SPI_SR_TXE);
+	uint8_t interruptEnabledFlag = pSPIHandle->pSPIx->CR2 & ( 1 << SPI_CR2_TXEIE);
 	if(statusFlag && interruptEnabledFlag)
 	{
 		// Handle TXE interrupt
@@ -429,8 +429,8 @@ void SPI_IRQHandling(SPI_Handle_t *pSPIHandle)
 	}
 
 	// Get the status of the RXNE and RXNEIE flags
-	statusFlag = SPI_GetFlagStatus(pSPIHandle->pSPIx, SPI_RXNE_FLAG);
-	interruptEnabledFlag = SPI_GetFlagStatus(pSPIHandle->pSPIx, SPI_RXNEIE_FLAG);
+	statusFlag = pSPIHandle->pSPIx->SR & ( 1 << SPI_SR_RXNE);
+	interruptEnabledFlag = pSPIHandle->pSPIx->CR2 & ( 1 << SPI_CR2_RXNEIE);
 	if(statusFlag && interruptEnabledFlag)
 	{
 		// Handle RXNXE interrupt
@@ -438,8 +438,8 @@ void SPI_IRQHandling(SPI_Handle_t *pSPIHandle)
 	}
 
 	// Get the status of the OVR and ERRIE flags
-	statusFlag = SPI_GetFlagStatus(pSPIHandle->pSPIx, SPI_OVR_FLAG);
-	interruptEnabledFlag = SPI_GetFlagStatus(pSPIHandle->pSPIx, SPI_ERRIE_FLAG);
+	statusFlag = pSPIHandle->pSPIx->SR & ( 1 << SPI_SR_OVR);
+	interruptEnabledFlag = pSPIHandle->pSPIx->CR2 & ( 1 << SPI_CR2_ERRIE);
 	if(statusFlag && interruptEnabledFlag)
 	{
 		// Handle OVR interrupt
