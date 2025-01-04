@@ -9,6 +9,7 @@
 #define INC_STM32F407XX_I2C_DRIVER_H_
 
 #include "stm32f407xx.h"
+#include "stm32f407xx_gpio_driver.h"
 
 /**
  * Configuration structure for I2Cx peripheral
@@ -104,10 +105,12 @@ void I2C_DeInit(I2C_RegDef_t *pI2Cx);
 /**
  * @brief   Initializes the GPIO pins for I2C usage
  * @param   pGPIOx		GPIO Peripheral base address
- *
+ * @param	AFMode		Alternate Function mode
+ * @param	SCLPin		Pin number for I2C SCL
+ * @param	SDAPin		Pin number for I2C SDA
  * @return  void
  */
-void I2C_GPIOInit(GPIO_RegDef_t *pGPIOx);
+void I2C_GPIOInit(GPIO_RegDef_t *pGPIOx, uint8_t AFMode, uint8_t SCLPin, uint8_t SDAPin);
 
 /**
  * @brief   Retrieves flag status from the I2C_SR1 register

@@ -5,6 +5,7 @@
  *      Author: engineering
  */
 #include "stm32f407xx_i2c_driver.h"
+#include <string.h>
 
 uint16_t AHB_PreScaler[8] = {2, 4, 8, 16, 64, 128, 256, 512};
 uint16_t APB1_PreScaler[4] = {2, 4, 8, 16};
@@ -68,43 +69,43 @@ static void I2C_ClearADDRFlag(I2C_RegDef_t *pI2Cx)
 void I2C_PeriClockControl(I2C_RegDef_t *pI2Cx, uint8_t EnorDi)
 {
 	if (EnorDi == ENABLE)
-		    {
-		        if (pI2Cx == I2C1)
-		        {
-		            I2C1_PCLK_EN();
-		        }
-		        else if (pI2Cx == I2C2)
-		        {
-		            I2C2_PCLK_EN();
-		        }
-		        else if (pI2Cx == I2C3)
-				{
-					I2C3_PCLK_EN();
-				}
-		        else
-		        {
-		            // Handle invalid
-		        }
-		    }
-		    else if (EnorDi == DISABLE)
-		    {
-		    	if (pI2Cx == I2C1)
-				{
-					I2C1_PCLK_DI();
-				}
-				else if (pI2Cx == I2C2)
-				{
-					I2C2_PCLK_DI();
-				}
-				else if (pI2Cx == I2C3)
-				{
-					I2C3_PCLK_DI();
-				}
-		        else
-		        {
-		            // Handle invalid
-		        }
-		    }
+	{
+		if (pI2Cx == I2C1)
+		{
+			I2C1_PCLK_EN();
+		}
+		else if (pI2Cx == I2C2)
+		{
+			I2C2_PCLK_EN();
+		}
+		else if (pI2Cx == I2C3)
+		{
+			I2C3_PCLK_EN();
+		}
+		else
+		{
+			// Handle invalid
+		}
+	}
+	else if (EnorDi == DISABLE)
+	{
+		if (pI2Cx == I2C1)
+		{
+			I2C1_PCLK_DI();
+		}
+		else if (pI2Cx == I2C2)
+		{
+			I2C2_PCLK_DI();
+		}
+		else if (pI2Cx == I2C3)
+		{
+			I2C3_PCLK_DI();
+		}
+		else
+		{
+			// Handle invalid
+		}
+	}
 } // I2C_PeriClockControl
 
 /**
@@ -195,6 +196,9 @@ void I2C_Init(I2C_Handle_t *pI2CHandle)
 {
 	uint32_t tmpReg = 0;
 
+	// Enable the peripheral clock
+	I2C_PeriClockControl(pI2CHandle->pI2Cx, ENABLE);
+
 	// Configure the ACK control field of CR1
 	tmpReg |= ( pI2CHandle->I2C_Config.I2C_ACKControl << I2C_CR1_ACK );
 	pI2CHandle->pI2Cx->CR1 = tmpReg;	// CR1's reset value is 0x000 so this is OK
@@ -216,7 +220,7 @@ void I2C_Init(I2C_Handle_t *pI2CHandle)
 	{
 		// Standard mode
 		ccrValue = ( RCC_GetPCLK1Value() / ( 2 * pI2CHandle->I2C_Config.I2C_SCLSpeed ) );
-		tmpReg = ( ccrValue & 0xFFF );	// Mask out all bits besides the first 12
+		tmpReg |= ( ccrValue & 0xFFF );	// Mask out all bits besides the first 12
 	}
 	else
 	{
@@ -259,12 +263,30 @@ void I2C_Init(I2C_Handle_t *pI2CHandle)
 void I2C_DeInit(I2C_RegDef_t *pI2Cx);
 
 /**
- * @brief   Initializes the GPIO pins for I2C usage
- * @param   pGPIOx		GPIO Peripheral base address
- *
- * @return  void
+ * Initializes the GPIO pins for I2C usage
  */
-void I2C_GPIOInit(GPIO_RegDef_t *pGPIOx);
+void I2C_GPIOInit(GPIO_RegDef_t *pGPIOx, uint8_t AFMode, uint8_t SCLPin, uint8_t SDAPin)
+{
+	// Create and initialize GPIO Handle
+	GPIO_Handle_t I2CPins;
+	memset(&I2CPins, 0, sizeof(I2CPins));
+	I2CPins.pGPIOx = pGPIOx;
+
+	// Set general pin configuration
+	I2CPins.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ALTFN;
+	I2CPins.GPIO_PinConfig.GPIO_PinAltFunMode = AFMode;
+	I2CPins.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_OD;	// Open drain output type
+	I2CPins.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;	// We will use an external pull-up resistors
+	I2CPins.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_FAST;
+
+	// Init SCLK
+	I2CPins.GPIO_PinConfig.GPIO_PinNumber = SCLPin;
+	GPIO_Init(&I2CPins);
+
+	// Init MOSI
+	I2CPins.GPIO_PinConfig.GPIO_PinNumber = SDAPin;
+	GPIO_Init(&I2CPins);
+} // I2C_GPIOInit
 
 /**
  * Retrieves flag status from the I2C_SR1 register
@@ -353,7 +375,17 @@ void I2C_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority);
  * @param	EnorDi		ENABLE or DISABLE macro
  * @return	void
  */
-void I2C_PeripheralControl(I2C_RegDef_t *pI2Cx, uint8_t EnorDi);
+void I2C_PeripheralControl(I2C_RegDef_t *pI2Cx, uint8_t EnorDi)
+{
+	if(EnorDi == ENABLE)
+	{
+		pI2Cx->CR1 |= ( 1 << I2C_CR1_PE );
+	}
+	else
+	{
+		pI2Cx->CR1 &= ~( 1 << I2C_CR1_PE );
+	}
+} // I2C_PeripheralControl
 
 
 /**
