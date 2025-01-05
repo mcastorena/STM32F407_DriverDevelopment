@@ -71,6 +71,12 @@ typedef struct
 #define I2C_WRITE_BIT			0
 #define I2C_READ_BIT			1
 
+/**
+ * I2C Sr (Repeated Start) Condition Flags
+ */
+#define I2C_DISABLE_SR				RESET
+#define I2C_ENABLE_SR				SET
+
 /*********************** APIs supported by this driver *********************************/
 
 /**
@@ -134,9 +140,10 @@ uint8_t I2C_GetFlagStatus(I2C_RegDef_t *pI2Cx, uint8_t flagName);
  * @param	pTxBuffer	Pointer to the transmit buffer
  * @param	len			Size of the data we want to transmit
  * @param	slaveAddr	Address of the I2C Slave device
+ * @param	Sr			Flag indicating whether the send data transaction will be followed by a repeated start
  * @return	void
  */
-void I2C_MasterSendData(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint8_t len, uint8_t slaveAddr);
+void I2C_MasterSendData(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint8_t len, uint8_t slaveAddr, uint8_t Sr);
 
 /**
  * @brief	Receive data
@@ -144,9 +151,10 @@ void I2C_MasterSendData(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint8_t le
  * @param	pRxBuffer	Pointer to the transmit buffer
  * @param	len			Size of the data we want to transmit
  * @param	slaveAddr	Address of the I2C Slave device
+ * @param	Sr			Flag indicating whether the receive data transaction will be followed by a repeated start
  * @return	void
  */
-void I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle, uint8_t *pRxBuffer, uint8_t len, uint8_t slaveAddr);
+void I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle, uint8_t *pRxBuffer, uint8_t len, uint8_t slaveAddr, uint8_t Sr);
 
 /**
  * IRQ configuration and ISR handling

@@ -124,18 +124,18 @@ int main(void)
 
 		// Send the command to get the length of the data from the Arduino slave
 		cmdCode = CMD_GET_LEN;
-		I2C_MasterSendData(&I2C1Handle, &cmdCode, 1, SLAVE_ADDR);
+		I2C_MasterSendData(&I2C1Handle, &cmdCode, 1, SLAVE_ADDR, I2C_ENABLE_SR);
 
 		// Get the length from the slave
-		I2C_MasterReceiveData(&I2C1Handle, &rxLen, 1, SLAVE_ADDR);
+		I2C_MasterReceiveData(&I2C1Handle, &rxLen, 1, SLAVE_ADDR, I2C_ENABLE_SR);
 		printf("Length received from slave: %d\n", rxLen);
 
 		// Send the command to receive the data from the slave
 		cmdCode = CMD_RCV_DATA;
-		I2C_MasterSendData(&I2C1Handle, &cmdCode, 1, SLAVE_ADDR);
+		I2C_MasterSendData(&I2C1Handle, &cmdCode, 1, SLAVE_ADDR, I2C_ENABLE_SR);
 
 		// Get the data from the slave
-		I2C_MasterReceiveData(&I2C1Handle, rxBuffer, rxLen, SLAVE_ADDR);
+		I2C_MasterReceiveData(&I2C1Handle, rxBuffer, rxLen, SLAVE_ADDR, I2C_DISABLE_SR);
 		printf("Data received from slave: %s", rxBuffer);
 	}
 

@@ -315,7 +315,7 @@ uint8_t I2C_GetFlagStatus(I2C_RegDef_t *pI2Cx, uint8_t flagName)
 /**
  * Send data
  */
-void I2C_MasterSendData(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint8_t len, uint8_t slaveAddr)
+void I2C_MasterSendData(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint8_t len, uint8_t slaveAddr, uint8_t Sr)
 {
 	// Generate the START condition
 	I2C_GenerateStartCondition(pI2CHandle->pI2Cx);
@@ -347,14 +347,18 @@ void I2C_MasterSendData(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint8_t le
 	// NOTE: When TXE = 1, BTF = 1, this means both the SR and DR are empty and next transmission should begin
 	// When BTF = 1, SCL will be stretched (pulled low)
 	while( (!I2C_GetFlagStatus(pI2CHandle->pI2Cx, I2C_TXE_FLAG)) && (!I2C_GetFlagStatus(pI2CHandle->pI2Cx, I2C_BTF_FLAG)) );
-	I2C_GenerateStopCondition(pI2CHandle->pI2Cx);
+
+	if(Sr == I2C_DISABLE_SR)
+	{
+		I2C_GenerateStopCondition(pI2CHandle->pI2Cx);
+	}
 
 } // I2C_MasterSendData
 
 /**
  * Receive data
  */
-void I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle, uint8_t *pRxBuffer, uint8_t len, uint8_t slaveAddr)
+void I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle, uint8_t *pRxBuffer, uint8_t len, uint8_t slaveAddr, uint8_t Sr)
 {
 	// Generate the START condition
 	I2C_GenerateStartCondition(pI2CHandle->pI2Cx);
@@ -382,8 +386,11 @@ void I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle, uint8_t *pRxBuffer, uint8_t
 		// Wait until RXNE flag is set
 		while(!I2C_GetFlagStatus(pI2CHandle->pI2Cx, I2C_RXNE_FLAG));
 
-		// Generate the STOP condition
-		I2C_GenerateStopCondition(pI2CHandle->pI2Cx);
+		// Generate the STOP condition if needed
+		if(Sr == I2C_DISABLE_SR)
+		{
+			I2C_GenerateStopCondition(pI2CHandle->pI2Cx);
+		}
 
 		// Read data into buffer from the DR
 		*(pRxBuffer) = pI2CHandle->pI2Cx->DR;
@@ -406,8 +413,11 @@ void I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle, uint8_t *pRxBuffer, uint8_t
 				// Disable ACKing
 				I2C_ACKControl(pI2CHandle->pI2Cx, I2C_ACK_DISABLE);
 
-				// Generate the STOP condition
-				I2C_GenerateStopCondition(pI2CHandle->pI2Cx);
+				// Generate the STOP condition if needed
+				if(Sr == I2C_DISABLE_SR)
+				{
+					I2C_GenerateStopCondition(pI2CHandle->pI2Cx);
+				}
 
 				/**
 				 * The Master will send NACK and generate the STOP condition
