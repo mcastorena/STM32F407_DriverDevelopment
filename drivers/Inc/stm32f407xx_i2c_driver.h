@@ -65,6 +65,12 @@ typedef struct
 #define I2C_OVR_FLAG			( 1 << I2C_SR1_OVR )
 #define I2C_TIMEOUT_FLAG		( 1 << I2C_SR1_TIMEOUT )
 
+/**
+ * I2C R/nW bit macros
+ */
+#define I2C_WRITE_BIT			0
+#define I2C_READ_BIT			1
+
 /*********************** APIs supported by this driver *********************************/
 
 /**
@@ -133,6 +139,16 @@ uint8_t I2C_GetFlagStatus(I2C_RegDef_t *pI2Cx, uint8_t flagName);
 void I2C_MasterSendData(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint8_t len, uint8_t slaveAddr);
 
 /**
+ * @brief	Receive data
+ * @param	pI2CHandle 	I2C Peripheral Handle
+ * @param	pRxBuffer	Pointer to the transmit buffer
+ * @param	len			Size of the data we want to transmit
+ * @param	slaveAddr	Address of the I2C Slave device
+ * @return	void
+ */
+void I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle, uint8_t *pRxBuffer, uint8_t len, uint8_t slaveAddr);
+
+/**
  * IRQ configuration and ISR handling
  */
 /**
@@ -163,6 +179,14 @@ void I2C_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority);
  * @return	void
  */
 void I2C_PeripheralControl(I2C_RegDef_t *pI2Cx, uint8_t EnorDi);
+
+/**
+ * @brief 	Enable or disable ACKing for the I2C peripheral
+ * @param	pI2Cx		I2C peripheral base address
+ * @param	EnorDi		ENABLE or DISABLE macro
+ * @return	void
+ */
+void I2C_ACKControl(I2C_RegDef_t *pI2Cx, uint8_t EnorDi);
 
 /**
  * Application call-back
