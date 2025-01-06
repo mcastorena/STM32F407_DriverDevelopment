@@ -29,6 +29,14 @@ typedef struct
 {
 	I2C_RegDef_t *pI2Cx;
 	I2C_Config_t I2C_Config;
+	uint8_t			*pTxBuffer;		// Stores the application TX Buffer address
+	uint8_t			*pRxBuffer;		// Stores the application RX Buffer address
+	uint32_t		txLen;			// Length of TX Buffer
+	uint32_t		rxLen;			// Length of RX Buffer
+	uint8_t			txRxState;		// Stores the communication state
+	uint8_t			devAddr;		// Stores the slave/device address
+	uint32_t		rxSize;			// Stores the RX size
+	uint8_t			Sr;				// Stores the Repeated Start value
 }I2C_Handle_t;
 
 /**
@@ -74,8 +82,15 @@ typedef struct
 /**
  * I2C Sr (Repeated Start) Condition Flags
  */
-#define I2C_DISABLE_SR				RESET
-#define I2C_ENABLE_SR				SET
+#define I2C_DISABLE_SR			RESET
+#define I2C_ENABLE_SR			SET
+
+/**
+ * I2C Application States
+ */
+#define I2C_READY				0
+#define I2C_BUSY_IN_RX			1
+#define I2C_BUSY_IN_TX			2
 
 /*********************** APIs supported by this driver *********************************/
 
