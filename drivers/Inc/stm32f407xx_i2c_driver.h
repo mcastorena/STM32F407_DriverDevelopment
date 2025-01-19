@@ -103,6 +103,8 @@ typedef struct
 #define I2C_ERROR_AF    		5
 #define I2C_ERROR_OVR   		6
 #define I2C_ERROR_TIMEOUT 		7
+#define I2C_EV_DATA_REQ			8
+#define I2C_EV_DATA_RCV			9
 
 /*********************** APIs supported by this driver *********************************/
 
@@ -259,6 +261,20 @@ void I2C_CloseDataReception(I2C_Handle_t *pI2CHandle);
  */
 void I2C_CloseDataTransmission(I2C_Handle_t *pI2CHandle);
 
+/**
+ * @brief	Send data in Slave mode
+ * @param	pI2Cx	I2C peripheral base address
+ * @param	data	Byte of data to send
+ * @return	void
+ */
+void I2C_SlaveSendData(I2C_RegDef_t *pI2Cx, uint8_t data);
+
+/**
+ * @brief	Receive data in Slave mode
+ * @param	pI2Cx	I2C peripheral base address
+ * @return	uint8_t	Byte of data receieved
+ */
+uint8_t I2C_SlaveReceiveData(I2C_RegDef_t *pI2Cx);
 
 /**
  * Other Peripheral Control APIs
@@ -280,6 +296,14 @@ void I2C_PeripheralControl(I2C_RegDef_t *pI2Cx, uint8_t EnorDi);
  * @return	void
  */
 void I2C_ACKControl(I2C_RegDef_t *pI2Cx, uint8_t EnorDi);
+
+/**
+ * @brief Enable or disable interrupt callback events for the I2C peripheral
+ * @param	pI2Cx		I2C peripheral base address
+ * @param	EnorDi		ENABLE or DISABLE macro
+ * @return	void
+ */
+void I2C_CallbackEventsControl(I2C_RegDef_t *pI2Cx, uint8_t EnorDi);
 
 /**
  * Application call-back

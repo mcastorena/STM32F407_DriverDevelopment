@@ -234,7 +234,8 @@ void I2C_Init(I2C_Handle_t *pI2CHandle)
 	pI2CHandle->pI2Cx->CR2 = ( tmpReg & 0x3F );		// Mask all but the first 5 bits to set the FREQ field
 
 	// Configure the device address
-	tmpReg = ( pI2CHandle->I2C_Config.I2C_DeviceAddress << 1 ); 	// Shift one to enforce 7 bit length
+	tmpReg = 0;
+	tmpReg |= ( pI2CHandle->I2C_Config.I2C_DeviceAddress << 1 ); 	// Shift one to enforce 7 bit length
 	tmpReg |= ( 1 << 14 );		// Bit 14 must be kept at 1 by software, refer to reference manual section 27.6.3 I2C Own address register 1 (I2C_OAR1)
 	pI2CHandle->pI2Cx->OAR1 = tmpReg;
 
@@ -526,6 +527,24 @@ uint8_t I2C_MasterReceiveDataIT(I2C_Handle_t *pI2CHandle, uint8_t *pRxBuffer, ui
 } // I2C_MasterReceiveDataIT
 
 /**
+ * Send data in Slave mode
+ */
+void I2C_SlaveSendData(I2C_RegDef_t *pI2Cx, uint8_t data)
+{
+	// Load the byte of data into the I2C peripheral Data Register
+	pI2Cx->DR = data;
+} // I2C_SlaveSendData
+
+/**
+ * Receive data in Slave mode
+ */
+uint8_t I2C_SlaveReceiveData(I2C_RegDef_t *pI2Cx)
+{
+	// Return the byte of data in the I2C peripheral Data Register
+	return (uint8_t)pI2Cx->DR;
+} // I2C_SlaveReceiveData
+
+/**
  * IRQ configuration and ISR handling
  */
 
@@ -719,6 +738,15 @@ void I2C_EV_IRQHandler(I2C_Handle_t *pI2CHandle)
 		{
 			I2C_MasterHandleTXEInterrupt(pI2CHandle);
 		}
+		else
+		{
+			// Slave Mode
+			// Check the TRA bitfield in SR2 register to see if we are in Transmitter mode
+			if(pI2CHandle->pI2Cx->SR2 & ( 1 << I2C_SR2_TRA ))
+			{
+				I2C_ApplicationEventCallback(pI2CHandle, I2C_EV_DATA_REQ);
+			}
+		}
 
 	}
 
@@ -730,6 +758,15 @@ void I2C_EV_IRQHandler(I2C_Handle_t *pI2CHandle)
 		if((pI2CHandle->pI2Cx->SR2 & (1 << I2C_SR2_MSL)) && (pI2CHandle->txRxState == I2C_BUSY_IN_RX))
 		{
 			I2C_MasterHandleRXNEInterrupt(pI2CHandle);
+		}
+		else
+		{
+			// Slave Mode
+			// Check the TRA bitfield in SR2 register to see if we are in Transmitter mode
+			if(!(pI2CHandle->pI2Cx->SR2 & ( 1 << I2C_SR2_TRA )))
+			{
+				I2C_ApplicationEventCallback(pI2CHandle, I2C_EV_DATA_RCV);
+			}
 		}
 	}
 } // I2C_EV_IRQHandler
@@ -931,6 +968,34 @@ void I2C_ACKControl(I2C_RegDef_t *pI2Cx, uint8_t EnorDi)
 	}
 } // I2C_ACKControl
 
+/**
+ * Enable or disable interrupt callback events for the I2C peripheral
+ */
+void I2C_CallbackEventsControl(I2C_RegDef_t *pI2Cx, uint8_t EnorDi)
+{
+	if(EnorDi == ENABLE)
+	{
+		// Enable the ITBUFEN control bit
+		pI2Cx->CR2 |= ( 1 << I2C_CR2_ITBUFEN );
+
+		// Enable the ITEVTEN control bit
+		pI2Cx->CR2 |= ( 1 << I2C_CR2_ITEVTEN );
+
+		// Enable the ITERREN control bit
+		pI2Cx->CR2 |= ( 1 << I2C_CR2_ITERREN );
+	}
+	else
+	{
+		// Disable the ITBUFEN control bit
+		pI2Cx->CR2 &= ~( 1 << I2C_CR2_ITBUFEN );
+
+		// Disable the ITEVTEN control bit
+		pI2Cx->CR2 &= ~( 1 << I2C_CR2_ITEVTEN );
+
+		// Disable the ITERREN control bit
+		pI2Cx->CR2 &= ~( 1 << I2C_CR2_ITERREN );
+	}
+}
 
 /**
  * Application call-back
