@@ -35,7 +35,7 @@ typedef struct
 	uint32_t		rxLen;			// Length of RX Buffer
 	uint8_t			txRxState;		// Stores the communication state
 	uint8_t			devAddr;		// Stores the slave/device address
-	uint32_t		rxSize;			// Stores the RX size
+	uint32_t		rxSize;			// Stores total RX buffer size
 	uint8_t			Sr;				// Stores the Repeated Start value
 }I2C_Handle_t;
 
@@ -58,7 +58,6 @@ typedef struct
 #define I2C_FM_DUTY_2			0
 #define I2C_FM_DUTY_16_9		1
 
-
 /**
  * I2C Flag Status macros
  */
@@ -67,6 +66,7 @@ typedef struct
 #define I2C_SB_FLAG				( 1 << I2C_SR1_SB )
 #define I2C_ADDR_FLAG			( 1 << I2C_SR1_ADDR )
 #define I2C_BTF_FLAG			( 1 << I2C_SR1_BTF )
+#define I2C_STOPF_FLAG			( 1 << I2C_SR1_STOPF )
 #define I2C_BERR_FLAG			( 1 << I2C_SR1_BERR )
 #define I2C_ARLO_FLAG			( 1 << I2C_SR1_ARLO )
 #define I2C_AF_FLAG				( 1 << I2C_SR1_AF )
@@ -91,6 +91,18 @@ typedef struct
 #define I2C_READY				0
 #define I2C_BUSY_IN_RX			1
 #define I2C_BUSY_IN_TX			2
+
+/**
+ * I2C Application Callback Events
+ */
+#define I2C_EV_TX_COMPLETE		0
+#define I2C_EV_RX_COMPLETE		1
+#define I2C_EV_STOP				2
+#define I2C_ERROR_BERR  		3
+#define I2C_ERROR_ARLO  		4
+#define I2C_ERROR_AF    		5
+#define I2C_ERROR_OVR   		6
+#define I2C_ERROR_TIMEOUT 		7
 
 /*********************** APIs supported by this driver *********************************/
 
@@ -172,6 +184,28 @@ void I2C_MasterSendData(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint8_t le
 void I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle, uint8_t *pRxBuffer, uint8_t len, uint8_t slaveAddr, uint8_t Sr);
 
 /**
+ * @brief	Interrupt driven send data
+ * @param	pI2CHandle 	I2C Peripheral Handle
+ * @param	pTxBuffer	Pointer to the transmit buffer
+ * @param	len			Size of the data we want to transmit
+ * @param	slaveAddr	Address of the I2C Slave device
+ * @param	Sr			Flag indicating whether the send data transaction will be followed by a repeated start
+ * @return	uint8_t		I2C Application State
+ */
+uint8_t I2C_MasterSendDataIT(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint8_t len, uint8_t slaveAddr, uint8_t Sr);
+
+/**
+ * @brief	Interrupt driven receive data
+ * @param	pI2CHandle 	I2C Peripheral Handle
+ * @param	pRxBuffer	Pointer to the transmit buffer
+ * @param	len			Size of the data we want to transmit
+ * @param	slaveAddr	Address of the I2C Slave device
+ * @param	Sr			Flag indicating whether the receive data transaction will be followed by a repeated start
+ * @return	uint8_t		I2C Application State
+ */
+uint8_t I2C_MasterReceiveDataIT(I2C_Handle_t *pI2CHandle, uint8_t *pRxBuffer, uint8_t len, uint8_t slaveAddr, uint8_t Sr);
+
+/**
  * IRQ configuration and ISR handling
  */
 /**
@@ -189,6 +223,42 @@ void I2C_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDi);
  * @return	void
  */
 void I2C_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority);
+
+/**
+ * @brief Handles interrupts generated on the I2C_EV line
+ * @param	pI2CHandle 	I2C Peripheral Handle
+ * @return	void
+ */
+void I2C_EV_IRQHandler(I2C_Handle_t *pI2CHandle);
+
+/**
+ * @brief Handles interrupts generated on the I2C_ER line
+ * @param	pI2CHandle 	I2C Peripheral Handle
+ * @return	void
+ */
+void I2C_ER_IRQHandler(I2C_Handle_t *pI2CHandle);
+
+/**
+ * @brief	Generate the STOP condition
+ * @param	pI2Cx		I2C peripheral base address
+ * @return	void
+ */
+void I2C_GenerateStopCondition(I2C_RegDef_t *pI2Cx);
+
+/**
+ * @brief Close I2C peripheral data reception
+ * @param 	pI2CHandle 	I2C Peripheral Handle
+ * @return	void
+ */
+void I2C_CloseDataReception(I2C_Handle_t *pI2CHandle);
+
+/**
+ * @brief Close I2C peripheral data transmission
+ * @param 	pI2CHandle 	I2C Peripheral Handle
+ * @return	void
+ */
+void I2C_CloseDataTransmission(I2C_Handle_t *pI2CHandle);
+
 
 /**
  * Other Peripheral Control APIs
