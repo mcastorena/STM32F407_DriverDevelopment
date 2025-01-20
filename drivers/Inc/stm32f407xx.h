@@ -244,6 +244,10 @@ typedef struct
 #define I2C2				((I2C_RegDef_t*)I2C2_BASEADDR)
 #define I2C3				((I2C_RegDef_t*)I2C3_BASEADDR)
 
+#define USART1				((USART_RegDef_t*)USART1_BASEADDR)
+#define USART2				((USART_RegDef_t*)USART2_BASEADDR)
+#define USART3				((USART_RegDef_t*)USART3_BASEADDR)
+
 #define RCC					((RCC_RegDef_t*)RCC_BASEADDR)
 
 #define EXTI				((EXTI_RegDef_t*)EXTI_BASEADDR)
