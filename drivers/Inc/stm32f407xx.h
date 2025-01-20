@@ -143,6 +143,20 @@ typedef struct
 }I2C_RegDef_t;
 
 /**
+ * Peripheral register definition structure for USART
+ */
+typedef struct
+{
+	volatile uint32_t SR;			// USART status register
+	volatile uint32_t DR;			// USART data register
+	volatile uint32_t BRR;			// USART baud rate register
+	volatile uint32_t CR1;			// USART control register 1
+	volatile uint32_t CR2;			// USART control register 2
+	volatile uint32_t CR3;			// USART control register 3
+	volatile uint32_t GTPR;			// USART guard time and prescaler register
+}USART_RegDef_t;
+
+/**
  * Peripheral register definition structure for RCC
  */
 typedef struct
