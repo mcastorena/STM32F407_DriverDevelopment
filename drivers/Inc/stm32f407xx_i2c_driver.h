@@ -10,6 +10,7 @@
 
 #include "stm32f407xx.h"
 #include "stm32f407xx_gpio_driver.h"
+#include "stm32f407xx_rcc_driver.h"
 
 /**
  * Configuration structure for I2Cx peripheral
@@ -119,12 +120,6 @@ typedef struct
  * @return  void
  */
 void I2C_PeriClockControl(I2C_RegDef_t *pI2Cx, uint8_t EnorDi);
-
-/**
- * @brief Returns the value of the APB1 bus clock speed in mHz
- * @return	uint32_t	The value of the APB1 bus clock speed in mHz
- */
-uint32_t RCC_GetPCLK1Value(void);
 
 /**
  * Init and De-init
