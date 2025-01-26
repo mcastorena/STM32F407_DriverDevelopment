@@ -223,7 +223,7 @@ void  USART_ReceiveData(USART_Handle_t *pUSARTHandle,uint8_t *pRxBuffer, uint32_
  */
 uint8_t USART_SendDataIT(USART_Handle_t *pUSARTHandle,uint8_t *pTxBuffer, uint32_t len)
 {
-
+	return 1;
 } // USART_SendDataIT
 
 /**
@@ -231,7 +231,7 @@ uint8_t USART_SendDataIT(USART_Handle_t *pUSARTHandle,uint8_t *pTxBuffer, uint32
  */
 uint8_t USART_ReceiveDataIT(USART_Handle_t *pUSARTHandle,uint8_t *pRxBuffer, uint32_t len)
 {
-
+	return 1;
 } // USART_ReceiveDataIT
 
 /**
