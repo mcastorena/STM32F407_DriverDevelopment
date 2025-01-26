@@ -76,9 +76,6 @@ void DS1307_SetCurrentTime(RTC_Time_t *rtcTime)
 
 void DS1307_GetCurrentTime(RTC_Time_t *rtcTime)
 {
-	// Clear the structure
-	memset(&rtcTime, 0, sizeof(rtcTime));
-
 	// Seconds
 	uint8_t seconds = DS1307_Read(DS1307_ADDR_SECS);
 	seconds &= ~( 1 << 7 );		// Clear the 7th bit to ensure the Clock Halt bit does affect the data read
@@ -125,9 +122,6 @@ void DS1307_SetCurrentDate(RTC_Date_t *rtcDate)
 
 void DS1307_GetCurrentDate(RTC_Date_t *rtcDate)
 {
-	// Clear the structure
-	memset(&rtcDate, 0, sizeof(rtcDate));
-
 	// Date
 	rtcDate->date = BCDToBinary(DS1307_Read(DS1307_ADDR_DATE));
 

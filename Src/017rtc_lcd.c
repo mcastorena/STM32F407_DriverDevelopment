@@ -7,6 +7,30 @@
 #include <stdio.h>
 #include "ds1307.h"
 
+#define SYSTICK_TIM_CLK 	16000000UL
+
+void initSystickTimer(uint32_t tick_hz)
+{
+	uint32_t *pSRVR = (uint32_t*)0xE000E014;
+	uint32_t *pSCSR = (uint32_t*)0xE000E010;
+
+    /* calculation of reload value */
+    uint32_t count_value = (SYSTICK_TIM_CLK/tick_hz)-1;
+
+    //Clear the value of SVR
+    *pSRVR &= ~(0x00FFFFFFFF);
+
+    //load the value in to SVR
+    *pSRVR |= count_value;
+
+    //do some settings
+    *pSCSR |= ( 1 << 1); //Enables SysTick exception request:
+    *pSCSR |= ( 1 << 2);  //Indicates the clock source, processor clock source
+
+    //enable the systick
+    *pSCSR |= ( 1 << 0); //enables the counter
+} // initSystickTimer
+
 /**
  * Converts integers less than 100 to their ASCII value
  */
@@ -80,6 +104,9 @@ char* dateToString(RTC_Date_t *rtcDate)
 
 extern void initialise_monitor_handles();
 
+RTC_Date_t currentDate;
+RTC_Time_t currentTime;
+
 int main(void)
 {
 	// Initialize to use printf
@@ -92,17 +119,18 @@ int main(void)
 		while(1);
 	}
 
+	// Initialize the systick timer to generate an interrupt every second
+	initSystickTimer(1);
+
 	/**
 	 * Set the current date and time
 	 */
-	RTC_Date_t currentDate;
 	currentDate.date = 25;
 	currentDate.day = SATURDAY;
 	currentDate.month = 1;
 	currentDate.year = 25;
 	DS1307_SetCurrentDate(&currentDate);
 
-	RTC_Time_t currentTime;
 	currentTime.hours = 6;
 	currentTime.minutes = 46;
 	currentTime.seconds = 22;
@@ -127,7 +155,27 @@ int main(void)
 
 	printf("Current date: %s %s\n", dateToString(&currentDate), getDayOfWeek(currentDate.day));
 
+
+
 	while(1);
 
 	return 0;
+}
+
+void SysTick_Handler(void)
+{
+	DS1307_GetCurrentDate(&currentDate);
+	DS1307_GetCurrentTime(&currentTime);
+
+	if(currentTime.time_format != TIME_FORMAT_24HRS)
+	{
+		char *amPM = (currentTime.time_format) ? "PM" : "AM";
+		printf("Current time: %s %s\n", timeToString(&currentTime), amPM);
+	}
+	else
+	{
+		printf("Current time: %s\n", timeToString(&currentTime));
+	}
+
+	printf("Current date: %s %s\n", dateToString(&currentDate), getDayOfWeek(currentDate.day));
 }
