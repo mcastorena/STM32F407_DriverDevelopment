@@ -9,6 +9,8 @@
 
 static void writeFourBits(uint8_t value);
 static void LCD_Enable(void);
+static void msDelay(uint32_t cnt);
+static void usDelay(uint32_t cnt);
 
 void LCD_Init(void)
 {
@@ -16,7 +18,7 @@ void LCD_Init(void)
 	 * Configure LCD GPIO Pins
 	 */
 	GPIO_Handle_t lcdSignal;
-	lcdSignal.pGPIOx = GPIOD;
+	lcdSignal.pGPIOx = LCD_GPIO_PORT;
 	lcdSignal.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_OUT;
 	lcdSignal.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_FAST;
 	lcdSignal.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
@@ -50,7 +52,10 @@ void LCD_Init(void)
 	lcdSignal.GPIO_PinConfig.GPIO_PinNumber = LCD_GPIO_D7;
 	GPIO_Init(&lcdSignal);
 
-	// Init Data Line pins to 0
+	// Init all pins to 0
+	GPIO_WriteToOutputPin(LCD_GPIO_PORT, LCD_GPIO_RS, GPIO_PIN_RESET);
+	GPIO_WriteToOutputPin(LCD_GPIO_PORT, LCD_GPIO_RW, GPIO_PIN_RESET);
+	GPIO_WriteToOutputPin(LCD_GPIO_PORT, LCD_GPIO_EN, GPIO_PIN_RESET);
 	GPIO_WriteToOutputPin(LCD_GPIO_PORT, LCD_GPIO_D4, GPIO_PIN_RESET);
 	GPIO_WriteToOutputPin(LCD_GPIO_PORT, LCD_GPIO_D5, GPIO_PIN_RESET);
 	GPIO_WriteToOutputPin(LCD_GPIO_PORT, LCD_GPIO_D6, GPIO_PIN_RESET);
@@ -77,6 +82,17 @@ void LCD_Init(void)
 	// Send command 0010
 	writeFourBits(0x2);
 
+	// Set display configuration
+	LCD_SendCommand(LCD_CMD_4DL_2N_5X8F);
+
+	// Turn display ON and cursor ON
+	LCD_SendCommand(LCD_CMD_DON_CURON);
+
+	// Clear display
+	LCD_DisplayClear();
+
+	// Set entry mode
+	LCD_SendCommand(LCD_CMD_INCADD);
 } // LCD_Init
 
 void LCD_SendCommand(uint8_t cmd)
@@ -85,31 +101,68 @@ void LCD_SendCommand(uint8_t cmd)
 	GPIO_WriteToOutputPin(LCD_GPIO_PORT, LCD_GPIO_RS, GPIO_PIN_RESET);
 	GPIO_WriteToOutputPin(LCD_GPIO_PORT, LCD_GPIO_RW, GPIO_PIN_RESET);
 
-	// Send the higher nibble and transition the enable pin from high to low
+	// Send the higher nibble and then lower nibble
 	writeFourBits(cmd >> 4);
-	LCD_Enable();
-
-	// Send the lower nibble and transition the enable pin from high to low
 	writeFourBits(cmd & 0x0F);
-	LCD_Enable();
 }
 
-void LCD_SendChar(uint8_t data)
+void LCD_PrintChar(uint8_t data)
 {
 	// Set RS to 1 and RW to 0
 	GPIO_WriteToOutputPin(LCD_GPIO_PORT, LCD_GPIO_RS, GPIO_PIN_SET);
 	GPIO_WriteToOutputPin(LCD_GPIO_PORT, LCD_GPIO_RW, GPIO_PIN_RESET);
 
-	// Send the higher nibble and transition the enable pin from high to low
+	// Send the higher nibble then lower nibble
 	writeFourBits(data >> 4);
-	GPIO_WriteToOutputPin(LCD_GPIO_PORT, LCD_GPIO_EN, GPIO_PIN_SET);
-	GPIO_WriteToOutputPin(LCD_GPIO_PORT, LCD_GPIO_EN, GPIO_PIN_RESET);
-
-	// Send the lower nibble and transition the enable pin from high to low
 	writeFourBits(data & 0x0F);
-	GPIO_WriteToOutputPin(LCD_GPIO_PORT, LCD_GPIO_EN, GPIO_PIN_SET);
-	GPIO_WriteToOutputPin(LCD_GPIO_PORT, LCD_GPIO_EN, GPIO_PIN_RESET);
 } // LCD_SendChar
+
+void LCD_PrintString(char* msg)
+{
+	do
+	{
+		LCD_PrintChar((uint8_t)*msg++);
+	}
+	while(*msg != '\0');
+} // LCD_PrintString
+
+void LCD_DisplayClear(void)
+{
+	// Send the display clear command
+	LCD_SendCommand(LCD_CMD_DIS_CLEAR);
+
+	// Wait 2ms, as specified in the data sheet
+	msDelay(2);
+} // LCD_DisplayClear
+
+void LCD_DisplayReturnHome(void)
+{
+	// Send the display clear command
+	LCD_SendCommand(LCD_CMD_DIS_RETURN_HOME);
+
+	// Wait 2ms, as specified in the data sheet
+	msDelay(2);
+} // LCD_DisplayClear
+
+void LCD_SetCursor(uint8_t row, uint8_t column)
+{
+	// Decrement column for 0 based index
+	column--;
+	switch(row)
+	{
+		case 1:
+			// Set the cursor to the 1st row address and add column index
+			LCD_SendCommand((column |= 0x80));
+			break;
+		case 2:
+			// Set cursor to the 2nd row address and add column index
+			LCD_SendCommand((column |= 0xC0));
+			break;
+		default:
+			// Row out of bounds
+			break;
+	}
+} // LCD_SetCursor
 
 static void writeFourBits(uint8_t value)
 {
@@ -132,3 +185,13 @@ static void LCD_Enable(void)
 	 * We could instead check the busy flag on D7 but will not for this application
 	 */
 } // LCD_Enable
+
+static void msDelay(uint32_t cnt)
+{
+	for(uint32_t i = 0; i < (cnt*1000); i++);
+} // msDelay
+
+static void usDelay(uint32_t cnt)
+{
+	for(uint32_t i = 0; i < (cnt*1); i++);
+} // usDelay

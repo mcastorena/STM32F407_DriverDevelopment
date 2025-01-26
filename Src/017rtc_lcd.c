@@ -6,6 +6,7 @@
  */
 #include <stdio.h>
 #include "ds1307.h"
+#include "lcd.h"
 
 #define SYSTICK_TIM_CLK 	16000000UL
 
@@ -102,6 +103,11 @@ char* dateToString(RTC_Date_t *rtcDate)
 	return buf;
 } // dateToString
 
+void msDelay(uint32_t cnt)
+{
+	for(uint32_t i = 0; i < (cnt*1000); i++);
+} // msDelay
+
 extern void initialise_monitor_handles();
 
 RTC_Date_t currentDate;
@@ -113,6 +119,18 @@ int main(void)
 	initialise_monitor_handles();
 	printf("RTC Test\n");
 
+	// Initialize LCD
+	LCD_Init();
+
+	// Print test message
+	LCD_PrintString("LCD Test...");
+
+	// Delay for 2s then clear screen and return home
+	LCD_DisplayClear();
+	LCD_DisplayReturnHome();
+
+
+	// Initialize RTC
 	if(DS1307_Init())
 	{
 		printf("RTC initialization failed!\n");
@@ -125,15 +143,15 @@ int main(void)
 	/**
 	 * Set the current date and time
 	 */
-	currentDate.date = 25;
-	currentDate.day = SATURDAY;
+	currentDate.date = 26;
+	currentDate.day = SUNDAY;
 	currentDate.month = 1;
 	currentDate.year = 25;
 	DS1307_SetCurrentDate(&currentDate);
 
-	currentTime.hours = 6;
-	currentTime.minutes = 46;
-	currentTime.seconds = 22;
+	currentTime.hours = 12;
+	currentTime.minutes = 25;
+	currentTime.seconds = 0;
 	currentTime.time_format = TIME_FORMAT_12HRS_PM;
 	DS1307_SetCurrentTime(&currentTime);
 
@@ -147,13 +165,22 @@ int main(void)
 	{
 		char *amPM = (currentTime.time_format) ? "PM" : "AM";
 		printf("Current time: %s %s\n", timeToString(&currentTime), amPM);
+
+		LCD_PrintString(timeToString(&currentTime));
+		LCD_PrintString(amPM);
 	}
 	else
 	{
 		printf("Current time: %s\n", timeToString(&currentTime));
+		LCD_PrintString(timeToString(&currentTime));
 	}
-
 	printf("Current date: %s %s\n", dateToString(&currentDate), getDayOfWeek(currentDate.day));
+
+	// Move
+	LCD_SetCursor(2, 1);
+	LCD_PrintString(dateToString(&currentDate));
+	LCD_PrintChar(' ');
+	LCD_PrintString(getDayOfWeek(currentDate.day));
 
 
 
@@ -167,15 +194,26 @@ void SysTick_Handler(void)
 	DS1307_GetCurrentDate(&currentDate);
 	DS1307_GetCurrentTime(&currentTime);
 
+	// Set cursor
+	LCD_SetCursor(1,1);
 	if(currentTime.time_format != TIME_FORMAT_24HRS)
 	{
 		char *amPM = (currentTime.time_format) ? "PM" : "AM";
 		printf("Current time: %s %s\n", timeToString(&currentTime), amPM);
+
+		LCD_PrintString(timeToString(&currentTime));
+		LCD_PrintString(amPM);
 	}
 	else
 	{
 		printf("Current time: %s\n", timeToString(&currentTime));
+		LCD_PrintString(timeToString(&currentTime));
 	}
-
 	printf("Current date: %s %s\n", dateToString(&currentDate), getDayOfWeek(currentDate.day));
+
+	// Move
+	LCD_SetCursor(2, 1);
+	LCD_PrintString(dateToString(&currentDate));
+	LCD_PrintChar(' ');
+	LCD_PrintString(getDayOfWeek(currentDate.day));
 }

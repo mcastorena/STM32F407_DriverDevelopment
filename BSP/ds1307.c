@@ -87,21 +87,18 @@ void DS1307_GetCurrentTime(RTC_Time_t *rtcTime)
 
 	// Hours
 	uint8_t hours = DS1307_Read(DS1307_ADDR_HR);
-	uint8_t timeFormat = ( hours & ( 1 << 6 ) ); // Get the value of the 6th bit to determine if we are in 24hr or 12hr time format
-	if(timeFormat == TIME_FORMAT_24HRS)
+	if(hours & ( 1 << 6 ))	// Get the value of the 6th bit to determine if we are in 24hr or 12hr time format
 	{
-		// Mask all bits >5
-		hours &= 0x1F;
-		rtcTime->hours = BCDToBinary(hours);
-		rtcTime->time_format = TIME_FORMAT_24HRS;
+		//12hr format
+		rtcTime->time_format =  (hours & ( 1 << 5 )) ? TIME_FORMAT_12HRS_PM : TIME_FORMAT_12HRS_AM; // Check the AM/PM bitfield
+		hours &= ~(0x3 << 5);//Clear 6 and 5
 	}
 	else
 	{
-		rtcTime->time_format = (hours & ( 1 << 5 )) ? TIME_FORMAT_12HRS_PM : TIME_FORMAT_12HRS_AM; // Check the AM/PM bitfield
-		// Mask all bits >4
-		hours &= 0x0F;
-		rtcTime->hours = BCDToBinary(hours);
+		//24hr format
+		rtcTime->time_format = TIME_FORMAT_24HRS;
 	}
+	rtcTime->hours = BCDToBinary(hours);
 } // DS1307_SetCurrentTime
 
 void DS1307_SetCurrentDate(RTC_Date_t *rtcDate)
@@ -113,10 +110,10 @@ void DS1307_SetCurrentDate(RTC_Date_t *rtcDate)
 	DS1307_Write(binaryToBCD(rtcDate->month), DS1307_ADDR_MONTH);
 
 	// Year
-	DS1307_Write(binaryToBCD(rtcDate->date), DS1307_ADDR_YEAR);
+	DS1307_Write(binaryToBCD(rtcDate->year), DS1307_ADDR_YEAR);
 
 	// Day
-	DS1307_Write(binaryToBCD(rtcDate->date), DS1307_ADDR_DAY);
+	DS1307_Write(binaryToBCD(rtcDate->day), DS1307_ADDR_DAY);
 
 } // DS1307_SetCurrentDate
 

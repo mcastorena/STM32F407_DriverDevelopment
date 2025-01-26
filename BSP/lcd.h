@@ -25,7 +25,22 @@
 #define LCD_GPIO_D6				GPIO_PIN_NO_5
 #define LCD_GPIO_D7				GPIO_PIN_NO_6
 
+/**
+ * LCD commands
+ */
+#define LCD_CMD_4DL_2N_5X8F		0x28		// Display configuration: 4 bit data len, 2 limes, 5x8 font
+#define LCD_CMD_DON_CURON		0x0E		// Display on, cursor on
+#define LCD_CMD_INCADD			0x06		// Increment RAM Address
+#define LCD_CMD_DIS_CLEAR		0x01		// Display clear
+#define LCD_CMD_DIS_RETURN_HOME	0x02		// Display return home
+
 void LCD_Init(void);
 void LCD_SendCommand(uint8_t cmd);
+void LCD_PrintChar(uint8_t data);
+void LCD_PrintString(char* msg);
+void LCD_DisplayClear(void);
+void LCD_DisplayReturnHome(void);
+void LCD_SetCursor(uint8_t row, uint8_t column);
+
 
 #endif /* LCD_H_ */
